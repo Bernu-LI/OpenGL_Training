@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "Renderer/ShaderProgram.h"
+
 /* Array of vertex coordinates (already normalized) */
 GLfloat vertices[] = {
     0.0f, 0.5f, 0.0f,
@@ -97,25 +99,12 @@ int main(void)
 
     glClearColor(0, 1, 0, 1);
 
-    /* Vertex shader initialization */
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);   // Create a vertex shader object and return its unique id
-    glShaderSource(vs, 1, &vertex_shader, nullptr);     // Bind source code to the shader object
-    glCompileShader(vs);    // Compile source code
-    
-    /* Fragment shader initialization */
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);     // Create a fragment shader object and return its id
-    glShaderSource(fs, 1, &fragment_shader, nullptr);   // Bind source code to the shader object
-    glCompileShader(fs);    // Compile source code
-
-    /* Combine independent shader objects into a shader program */
-    GLuint shader_program = glCreateProgram();  // Create a program object and return its unique identifier
-    glAttachShader(shader_program, vs);     // Attach a vertex shader to the program object
-    glAttachShader(shader_program, fs);     // Attach a fragment shader to the program object 
-    glLinkProgram(shader_program);      // Link the program object
-    
-    /* Delete no longer needed shader objects */
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    /* Create a ready-to-use shader program object */
+    Renderer::ShaderProgram shader_program(vertex_shader, fragment_shader);
+    /* Check shader program compilation for success */
+    if (!shader_program.isCompiled()) {
+        std::cerr << "Can not create shader program" << std::endl;
+    }
 
     /* Create a Vertex Buffer Object with vertex coordinate data in video card memory */
     GLuint vertices_vbo = 0;    
@@ -151,7 +140,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         /* Render an object */
-        glUseProgram(shader_program);   // Activate shader program (make it current)
+        shader_program.use();   // Activate shader program (make it current)
         glBindVertexArray(vao);     //  Make the vertex array current
         glDrawArrays(GL_TRIANGLES, 0, 3);   // Render an object
 
