@@ -1,0 +1,6 @@
+#version 330    // GLSL version
+in vec3 color;      // Take the variable set in the vertex shader
+out vec4 fragment_color;    // Declaration of output variable (defines the fragment color)       
+void main() {      
+    fragment_color = vec4(color, 1.0f);
+}

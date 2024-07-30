@@ -4,17 +4,17 @@
 
 namespace Renderer {
     /* Create a ready-to-use shader program */
-    ShaderProgram::ShaderProgram(const char* vertexShader, const char* fragmentShader) {
+    ShaderProgram::ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
         /* Vertex shader initialization */
         GLuint vertexShaderID;
-        if (!initializeShader(vertexShader, GL_VERTEX_SHADER, vertexShaderID)) {
+        if (!initializeShader(vertexShaderSource.c_str(), GL_VERTEX_SHADER, vertexShaderID)) {
             std::cerr << "Vertex Shader compile time error" << std::endl;
             return;
         }
         
         /* Fragment shader initialization */
         GLuint fragmentShaderID;
-        if (!initializeShader(fragmentShader, GL_FRAGMENT_SHADER, fragmentShaderID)) {
+        if (!initializeShader(fragmentShaderSource.c_str(), GL_FRAGMENT_SHADER, fragmentShaderID)) {
             std::cerr << "Fragment Shader compile time error" << std::endl;
             glDeleteShader(vertexShaderID);     // Delete vertex shader in case of fragment shader compilation error
             return;
@@ -51,10 +51,11 @@ namespace Renderer {
     }
 
     /* Initialize shader */
-    bool ShaderProgram::initializeShader(const char* sourceCode, const GLenum shaderType, GLuint& shaderID) {
+    bool ShaderProgram::initializeShader(const std::string& sourceCode, const GLenum shaderType, GLuint& shaderID) {
         /* Shader initialization */
         shaderID = glCreateShader(shaderType);      // Create a shader object and return its unique ID
-        glShaderSource(shaderID, 1, &sourceCode, nullptr);       // Bind source code to the shader object
+        const char* C_stringSourceCode = sourceCode.c_str();    // Convert std::string to C-string
+        glShaderSource(shaderID, 1, &C_stringSourceCode, nullptr);      // Bind source code to the shader object
         glCompileShader(shaderID);      // Compile source code
 
         /* Compilation check */

@@ -8,7 +8,7 @@ namespace Renderer {
     class ShaderProgram {
     public:
         /* Create a ready-to-use shader program */
-        ShaderProgram(const char* vertexShader, const char* fragmentShader);
+        ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
         /* Delete a shader program */
         ~ShaderProgram();
@@ -20,9 +20,10 @@ namespace Renderer {
         /* Activate shader program (make it current) */
         void use() const;
         
-        /* Prohibit assignment-operator-based copying of shader program objects */
-        ShaderProgram& operator = (const ShaderProgram&) = delete;
-        /* Allow assignment-operator-based moving of shader program objects */
+        /*
+        Overload assignment-operator-based moving of shader program objects.
+        Declaring a custom move assingment operator implicitly deletes default copy constructor and copy assignment operator
+        */ 
         ShaderProgram& operator = (ShaderProgram&& ShaderProgram);
 
     private:
@@ -30,6 +31,6 @@ namespace Renderer {
         GLuint m_ID = 0;
         
         /* Initialize shader */
-        bool initializeShader(const char* sourceCode, const GLenum shaderType, GLuint& shaderID);
+        bool initializeShader(const std::string& sourceCode, const GLenum shaderType, GLuint& shaderID);
     }; 
 }

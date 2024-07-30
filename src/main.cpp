@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Renderer/ShaderProgram.h"
+#include "Resources/ResourceManager.h"
 
 /* Array of vertex coordinates (already normalized) */
 GLfloat vertices[] = {
@@ -58,7 +59,7 @@ void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int
     }
 }
 
-int main(void)
+int main(int argc, char** argv)
 {   
     /* Initialize the library */
     if (!glfwInit()) {
@@ -99,58 +100,67 @@ int main(void)
 
     glClearColor(0, 1, 0, 1);
 
-    /* Create a ready-to-use shader program object */
-    Renderer::ShaderProgram shader_program(vertex_shader, fragment_shader);
-    /* Check shader program compilation for success */
-    if (!shader_program.isCompiled()) {
-        std::cerr << "Can not create shader program" << std::endl;
-    }
-
-    /* Create a Vertex Buffer Object with vertex coordinate data in video card memory */
-    GLuint vertices_vbo = 0;    
-    glGenBuffers(1, &vertices_vbo);     // Create one buffer and return its unique identidier
-    glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Fill buffer with data
-
-    /* Create a Vertex Buffer Object with color data in video card memory */
-    GLuint colors_vbo = 0;
-    glGenBuffers(1, &colors_vbo);     // Create one buffer and return its unique identidier
-    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);  // Fill buffer with data
-
-    /* Create a Vertex Array Object for vertex attribute state */
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);     // Create one vertex array and return its unique identifier
-    glBindVertexArray(vao);     // Make the vertex array current
-
-    /* Configure the vertex shader to work with coordinates */
-    glEnableVertexAttribArray(0);   // Enable use of vertex attribute with index 0 in the vertex shader
-    glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
-
-    /* Configure the vertex shader to work with colors */
-    glEnableVertexAttribArray(1);   // Enable use of vertex attribute with index 1 in the vertex shader
-    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
-
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(pWindow))
+    /* 
+    Resource Manager contains OpenGL context that should be deleted before finishing work with OpenGL (glfwTerminate() command).
+    Therefore, all work with Resource Manager is allocated to a separate scope
+     */
     {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        /* Create a resource manager object */
+        ResourceManager resourceManager(argv[0]);
+        /* Load shaders source code and create a shader program */
+        auto pDefaultShaderProgram = resourceManager.loadShaders("DefaultShaderProgram", "res/shaders/vertex_shader.txt", "res/shaders/fragment_shader.txt");
+        /* Check creation of the shader program for success */
+        if (!pDefaultShaderProgram) {
+            std::cerr << "Can not create Shader Program: " << "DefaultShaderProgram" << std::endl;
+            return -1;
+        }
 
-        /* Render an object */
-        shader_program.use();   // Activate shader program (make it current)
-        glBindVertexArray(vao);     //  Make the vertex array current
-        glDrawArrays(GL_TRIANGLES, 0, 3);   // Render an object
+        /* Create a Vertex Buffer Object with vertex coordinate data in video card memory */
+        GLuint vertices_vbo = 0;    
+        glGenBuffers(1, &vertices_vbo);     // Create one buffer and return its unique identidier
+        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Fill buffer with data
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(pWindow);
+        /* Create a Vertex Buffer Object with color data in video card memory */
+        GLuint colors_vbo = 0;
+        glGenBuffers(1, &colors_vbo);     // Create one buffer and return its unique identidier
+        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
+        glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);  // Fill buffer with data
 
-        /* Poll for and process events */
-        glfwPollEvents();
+        /* Create a Vertex Array Object for vertex attribute state */
+        GLuint vao = 0;
+        glGenVertexArrays(1, &vao);     // Create one vertex array and return its unique identifier
+        glBindVertexArray(vao);     // Make the vertex array current
+
+        /* Configure the vertex shader to work with coordinates */
+        glEnableVertexAttribArray(0);   // Enable use of vertex attribute with index 0 in the vertex shader
+        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
+
+        /* Configure the vertex shader to work with colors */
+        glEnableVertexAttribArray(1);   // Enable use of vertex attribute with index 1 in the vertex shader
+        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
+
+        /* Loop until the user closes the window */
+        while (!glfwWindowShouldClose(pWindow))
+        {
+            /* Render here */
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            /* Render an object */
+            pDefaultShaderProgram->use();   // Activate shader program (make it current)
+            glBindVertexArray(vao);     //  Make the vertex array current
+            glDrawArrays(GL_TRIANGLES, 0, 3);   // Render an object
+
+            /* Swap front and back buffers */
+            glfwSwapBuffers(pWindow);
+
+            /* Poll for and process events */
+            glfwPollEvents();
+        }
     }
-
+    
     glfwTerminate();
     return 0;
 }
