@@ -5,6 +5,7 @@
 
 #include "Renderer/ShaderProgram.h"
 #include "Resources/ResourceManager.h"
+#include "Renderer/Texture2D.h"
 
 /* Array of vertex coordinates (already normalized) */
 GLfloat vertices[] = {
@@ -13,32 +14,12 @@ GLfloat vertices[] = {
    -0.5f, -0.5f, 0.0f
 };
 
-/* Array of vertex colors */
-GLfloat colors[] = {
-    1.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 1.0f
-};
-
-/* Code for the vertex shader */
-const char* vertex_shader = 
-"#version 330\n"    // GLSL version
-"layout(location = 0) in vec3 vertex_position;"     // Declaration of input parameter
-"layout(location = 1) in vec3 vertex_color;"        // Declaration of input parameter
-"out vec3 color;"    // Declaration of output variable
-"void main() {"     // Function with shader logic
-"   color = vertex_color;"
-"   gl_Position = vec4(vertex_position, 1.0f);" // Definition of vertex position
-"}";
-
-/* Code for the fragment shader */
-const char* fragment_shader = 
-"#version 330\n"    // GLSL version
-"in vec3 color;"    // Take the value set in the vertex shader
-"out vec4 fragment_color;"    //    Declaration of output variable (defines the fragment color)  
-"void main() {"
-"   fragment_color = vec4(color, 1.0f);" 
-"}";
+/* Array of texture-to-vertex coordinate mapping */
+GLfloat texCoordinates[] = {
+    0.5f, 1.0f,
+    1.0f, 0.0f, 
+    0.0f, 0.0f  
+}; 
 
 /* Global variables for window size */
 int gWindowSizeX = 640;
@@ -115,32 +96,39 @@ int main(int argc, char** argv)
             return -1;
         }
 
+        /* Load a texture */
+        auto pDefaultTexture = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
+
         /* Create a Vertex Buffer Object with vertex coordinate data in video card memory */
         GLuint vertices_vbo = 0;    
-        glGenBuffers(1, &vertices_vbo);     // Create one buffer and return its unique identidier
-        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Fill buffer with data
+        glGenBuffers(1, &vertices_vbo);     // Generate and return one unique identifier for a buffer
+        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Create a buffer of GL_ARRAY_BUFFER type, bind it to the ID & make current
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Fill the buffer with data
 
-        /* Create a Vertex Buffer Object with color data in video card memory */
-        GLuint colors_vbo = 0;
-        glGenBuffers(1, &colors_vbo);     // Create one buffer and return its unique identidier
-        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-        glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);  // Fill buffer with data
+        /* Create a Vertex Buffer Object with texture-to-vertex coordinate mapping data in video card memory */
+        GLuint texCoordinates_vbo = 0;
+        glGenBuffers(1, &texCoordinates_vbo);   // Generate and return one unique identifier for a buffer
+        glBindBuffer(GL_ARRAY_BUFFER, texCoordinates_vbo);  // Create a buffer of GL_ARRAY_BUFFER type, bind it to the ID & make current
+        glBufferData(GL_ARRAY_BUFFER, sizeof(texCoordinates), texCoordinates, GL_STATIC_DRAW);  // Fill the buffer with data
 
         /* Create a Vertex Array Object for vertex attribute state */
         GLuint vao = 0;
-        glGenVertexArrays(1, &vao);     // Create one vertex array and return its unique identifier
-        glBindVertexArray(vao);     // Make the vertex array current
+        glGenVertexArrays(1, &vao);     // Generate and return one unique identifier for a vertex array
+        glBindVertexArray(vao);     // Create a vertex array object, bind it to the ID & make current
 
         /* Configure the vertex shader to work with coordinates */
-        glEnableVertexAttribArray(0);   // Enable use of vertex attribute with index 0 in the vertex shader
-        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
+        glEnableVertexAttribArray(0);   // Enable use of vertex attribute with index 0 in the vertex array
+        glBindBuffer(GL_ARRAY_BUFFER, vertices_vbo); // Make the buffer current
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the vertex shader interprets data
 
-        /* Configure the vertex shader to work with colors */
-        glEnableVertexAttribArray(1);   // Enable use of vertex attribute with index 1 in the vertex shader
-        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);  // Bind the buffer to GL_ARRAY_BUFFER type & make it current
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the driver interprets data
+        /* Configure the vertex shader to work with texture */
+        glEnableVertexAttribArray(1);   // Enable use of vertex attribute with index 2 in the vertex array
+        glBindBuffer(GL_ARRAY_BUFFER, texCoordinates_vbo);  // Make the buffer current
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // Configure how the vertex shader interprets data
+
+        /* Link a texture to the shader program*/
+        pDefaultShaderProgram->use();   // Activate shader program (make it current)
+        pDefaultShaderProgram->setTexture("tex", 0);    // Link the texture stored in texture unit 0 to the shader program
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(pWindow))
@@ -150,7 +138,8 @@ int main(int argc, char** argv)
 
             /* Render an object */
             pDefaultShaderProgram->use();   // Activate shader program (make it current)
-            glBindVertexArray(vao);     //  Make the vertex array current
+            glBindVertexArray(vao);     // Make the vertex array current
+            pDefaultTexture->bind();    // Make the texture bound to the texture unit current
             glDrawArrays(GL_TRIANGLES, 0, 3);   // Render an object
 
             /* Swap front and back buffers */

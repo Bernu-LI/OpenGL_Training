@@ -69,6 +69,7 @@ namespace Renderer {
         }
         return true;
     }
+    
     /* Activate shader program (make it current) */
     void ShaderProgram::use() const {
         glUseProgram(m_ID);
@@ -84,6 +85,12 @@ namespace Renderer {
         shaderProgram.m_isCompiled = false;
 
         return *this;
+    }
+    
+    /* Link a texture to a shader program */
+    void ShaderProgram::setTexture(const std::string& textureName, const GLint textureUnit) {
+        /* Get the location of the uniform variable and set its value */
+        glUniform1i(glGetUniformLocation(m_ID, textureName.c_str()), textureUnit);
     }
 }
 

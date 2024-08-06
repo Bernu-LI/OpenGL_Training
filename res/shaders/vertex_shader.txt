@@ -1,8 +1,8 @@
 #version 330    // GLSL version
-layout(location = 0) in vec3 vertex_position;       // Declaration of input parameter
-layout(location = 1) in vec3 vertex_color;      // Declaration of input parameter
-out vec3 color;     // Declaration of output variable
+layout(location = 0) in vec3 vertex_position;   // Declaration of input parameter
+layout(location = 1) in vec2 texture_coords;    // Declaration of input parameter
+out vec2 texCoords;  // Declaration of output variable
 void main() {       // Function with shader logic
-    color = vertex_color;   
+    texCoords = texture_coords;   
     gl_Position = vec4(vertex_position, 1.0f);      // Definition of vertex position
 }

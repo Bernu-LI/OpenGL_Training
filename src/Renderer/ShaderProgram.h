@@ -20,6 +20,9 @@ namespace Renderer {
         /* Activate shader program (make it current) */
         void use() const;
         
+        /* Link a texture to a shader program */
+        void setTexture(const std::string& textureName, const GLint textureUnit);
+        
         /*
         Overload assignment-operator-based moving of shader program objects.
         Declaring a custom move assingment operator implicitly deletes default copy constructor and copy assignment operator
