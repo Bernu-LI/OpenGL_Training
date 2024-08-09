@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/mat4x4.hpp>
 
 #include <string>
 
@@ -22,6 +23,9 @@ namespace Renderer {
         
         /* Link a texture to a shader program */
         void setTexture(const std::string& textureName, const GLint textureUnit);
+
+        /* Link a matrix to a shader program */
+        void setMatrix4(const std::string& matrixName, const glm::mat4& matrix);
         
         /*
         Overload assignment-operator-based moving of shader program objects.

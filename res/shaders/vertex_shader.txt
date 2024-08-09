@@ -2,7 +2,11 @@
 layout(location = 0) in vec3 vertex_position;   // Declaration of input parameter
 layout(location = 1) in vec2 texture_coords;    // Declaration of input parameter
 out vec2 texCoords;  // Declaration of output variable
+
+uniform mat4 modelMat;          // Declaration of variable that will refer to a model matrix
+uniform mat4 projectionMat;     // Declaration of variable that will refer to a projection matrix
+
 void main() {       // Function with shader logic
     texCoords = texture_coords;   
-    gl_Position = vec4(vertex_position, 1.0f);      // Definition of vertex position
+    gl_Position = projectionMat * modelMat * vec4(vertex_position, 1.0f);      // Definition of vertex position
 }

@@ -1,5 +1,7 @@
 #include "ShaderProgram.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 
 namespace Renderer {
@@ -91,6 +93,12 @@ namespace Renderer {
     void ShaderProgram::setTexture(const std::string& textureName, const GLint textureUnit) {
         /* Get the location of the uniform variable and set its value */
         glUniform1i(glGetUniformLocation(m_ID, textureName.c_str()), textureUnit);
+    }
+
+    /* Link a matrix to a shader program */
+    void  ShaderProgram::setMatrix4(const std::string& matrixName, const glm::mat4& matrix) {
+        /* Get the location of the uniform variable and set its value */
+        glUniformMatrix4fv(glGetUniformLocation(m_ID, matrixName.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
     }
 }
 

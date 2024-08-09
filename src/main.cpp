@@ -1,5 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 
@@ -7,11 +10,11 @@
 #include "Resources/ResourceManager.h"
 #include "Renderer/Texture2D.h"
 
-/* Array of vertex coordinates (already normalized) */
+/* Array of vertex coordinates in local space */
 GLfloat vertices[] = {
-    0.0f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f, 
-   -0.5f, -0.5f, 0.0f
+    0.0f, 50.f, 0.0f,
+    50.f, -50.f, 0.0f, 
+   -50.f, -50.f, 0.0f
 };
 
 /* Array of texture-to-vertex coordinate mapping */
@@ -21,16 +24,15 @@ GLfloat texCoordinates[] = {
     0.0f, 0.0f  
 }; 
 
-/* Global variables for window size */
-int gWindowSizeX = 640;
-int gWindowSizeY = 480;
+/* Global variable for window size */
+glm::ivec2 gWindowSize(640, 480);
 
 /* Callback function for resize window */
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height) {
-    gWindowSizeX = width;
-    gWindowSizeY = height;
+    gWindowSize.x = width;
+    gWindowSize.y = height;
     /* Set the rendering area inside the window */
-    glViewport(0, 0, gWindowSizeX, gWindowSizeY);
+    glViewport(0, 0, width, height);
 }
 
 /* Callback function for handling keyboard events */
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* pWindow = glfwCreateWindow(gWindowSizeX, gWindowSizeY, "OpenGL_Training ", nullptr, nullptr);
+    GLFWwindow* pWindow = glfwCreateWindow(gWindowSize.x, gWindowSize.y, "OpenGL_Training ", nullptr, nullptr);
     if (!pWindow)
     {
         std::cout << "glfwCreateWindow failed" << std::endl; 
@@ -130,6 +132,25 @@ int main(int argc, char** argv)
         pDefaultShaderProgram->use();   // Activate shader program (make it current)
         pDefaultShaderProgram->setTexture("tex", 0);    // Link the texture stored in texture unit 0 to the shader program
 
+        /*  
+        Create model matrices for transformation coordinates from local space to world space.
+        Model matrix determines where the shape is located in OpenGL window
+        */
+        glm::mat4x4 modelMatrix_1(1.f);     // Create a 4x4 identity matrix
+        modelMatrix_1 = glm::translate(modelMatrix_1, glm::vec3(100.f, 50.f, 0.f)); // Apply translation to the model matrix
+
+        glm::mat4x4 modelMatrix_2(1.f);     // Create a 4x4 identity matrix
+        modelMatrix_2 = glm::translate(modelMatrix_2, glm::vec3(540.f, 50.f, 0.f)); // Apply translation to the model matrix
+
+        /*  
+        Create a projection matrix for transormation coordinates from world space to clip space.
+        Projection matrix defines visible area(frustrum) in the space
+        */
+        glm::mat4x4 projectionMatrix = glm::ortho(0.f, static_cast<float>(gWindowSize.x), 0.f, static_cast<float>(gWindowSize.y), -100.f, 100.f);
+        
+        /* Link the projection matrix to the shader program */
+        pDefaultShaderProgram->setMatrix4("projectionMat", projectionMatrix);
+
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(pWindow))
         {
@@ -140,7 +161,12 @@ int main(int argc, char** argv)
             pDefaultShaderProgram->use();   // Activate shader program (make it current)
             glBindVertexArray(vao);     // Make the vertex array current
             pDefaultTexture->bind();    // Make the texture bound to the texture unit current
+
+            pDefaultShaderProgram->setMatrix4("modelMat", modelMatrix_1);   // Link the model matrix to the shader program
             glDrawArrays(GL_TRIANGLES, 0, 3);   // Render an object
+
+            pDefaultShaderProgram->setMatrix4("modelMat", modelMatrix_2);   // Link the model matrix to the shader program
+            glDrawArrays(GL_TRIANGLES, 0, 3);   // Rener an object
 
             /* Swap front and back buffers */
             glfwSwapBuffers(pWindow);
