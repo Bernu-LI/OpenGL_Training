@@ -1,0 +1,12 @@
+#version 330    // GLSL version
+layout(location = 0) in vec2 vertex_position;   // Declaration of input parameter
+layout(location = 1) in vec2 texture_coords;    // Declaration of input parameter
+out vec2 texCoords;     // Declaration of output variable
+
+uniform mat4 modelMat;          // Declaration of variable that will refer to a model matrix
+uniform mat4 projectionMat;     // Declaration of variable that will refer to a projection matrix
+
+void main() {
+    texCoords = texture_coords;
+    gl_Position = projectionMat * modelMat * vec4(vertex_position, 0.0f, 1.0f);     // Definition of vertex position
+}

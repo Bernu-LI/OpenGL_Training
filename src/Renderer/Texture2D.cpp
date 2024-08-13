@@ -51,6 +51,7 @@ namespace Renderer {
          glDeleteTextures(1, &m_ID);
     }
 
+    /* Overload move constructor */
     Texture2D::Texture2D(Texture2D&& texture2d) {
         m_ID = texture2d.m_ID;
         texture2d.m_ID = 0;
@@ -59,6 +60,7 @@ namespace Renderer {
         m_mode = texture2d.m_mode;
     }
 
+    /* Overload move assignment operator */
     Texture2D& Texture2D::operator = (Texture2D&& texture2d) {
         glDeleteTextures(1, &m_ID);
         m_ID = texture2d.m_ID;

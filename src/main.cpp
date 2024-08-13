@@ -9,6 +9,7 @@
 #include "Renderer/ShaderProgram.h"
 #include "Resources/ResourceManager.h"
 #include "Renderer/Texture2D.h"
+#include "Renderer/Sprite.h"
 
 /* Array of vertex coordinates in local space */
 GLfloat vertices[] = {
@@ -90,16 +91,30 @@ int main(int argc, char** argv)
     {
         /* Create a resource manager object */
         ResourceManager resourceManager(argv[0]);
+
         /* Load shaders source code and create a shader program */
         auto pDefaultShaderProgram = resourceManager.loadShaders("DefaultShaderProgram", "res/shaders/vertex_shader.txt", "res/shaders/fragment_shader.txt");
         /* Check creation of the shader program for success */
         if (!pDefaultShaderProgram) {
-            std::cerr << "Can not create Shader Program: " << "DefaultShaderProgram" << std::endl;
+            std::cerr << "Can not create shader program: " << "DefaultShaderProgram" << std::endl;
+            return -1;
+        }
+
+        /* Load sprite shaders source code and create a shader program for sprites */
+        auto pSpriteShaderProgram = resourceManager.loadShaders("SpriteShaderProgram", "res/shaders/vSprite_shader.txt", "res/shaders/fSprite_shader.txt");
+        if (!pDefaultShaderProgram) {
+            std::cerr << "Can not create shader program: " << "SpriteShaderProgram" << std::endl;
             return -1;
         }
 
         /* Load a texture */
         auto pDefaultTexture = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
+
+        /* Load a sprite */
+        auto pSprite = resourceManager.loadSprite("Sprite", "DefaultTexture", "SpriteShaderProgram", 50, 100);
+
+        /* Set sprite position */
+        pSprite->setPosition(glm::vec2(300, 100));
 
         /* Create a Vertex Buffer Object with vertex coordinate data in video card memory */
         GLuint vertices_vbo = 0;    
@@ -132,6 +147,10 @@ int main(int argc, char** argv)
         pDefaultShaderProgram->use();   // Activate shader program (make it current)
         pDefaultShaderProgram->setTexture("tex", 0);    // Link the texture stored in texture unit 0 to the shader program
 
+        /* Link a texture to the sprite shader program */
+        pSpriteShaderProgram->use();    // Activate shader program (make it current)
+        pSpriteShaderProgram->setTexture("tex", 0);     // Link the texture stored in texture unit 0 to the shader program 
+
         /*  
         Create model matrices for transformation coordinates from local space to world space.
         Model matrix determines where the shape is located in OpenGL window
@@ -149,7 +168,12 @@ int main(int argc, char** argv)
         glm::mat4x4 projectionMatrix = glm::ortho(0.f, static_cast<float>(gWindowSize.x), 0.f, static_cast<float>(gWindowSize.y), -100.f, 100.f);
         
         /* Link the projection matrix to the shader program */
+        pDefaultShaderProgram->use();
         pDefaultShaderProgram->setMatrix4("projectionMat", projectionMatrix);
+
+        /* Link the projection matrix to the sprite shader program */
+        pSpriteShaderProgram->use();
+        pSpriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(pWindow))
@@ -167,6 +191,9 @@ int main(int argc, char** argv)
 
             pDefaultShaderProgram->setMatrix4("modelMat", modelMatrix_2);   // Link the model matrix to the shader program
             glDrawArrays(GL_TRIANGLES, 0, 3);   // Rener an object
+
+            /* Render a sprite */
+            pSprite->render();
 
             /* Swap front and back buffers */
             glfwSwapBuffers(pWindow);

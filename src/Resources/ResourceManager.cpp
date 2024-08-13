@@ -1,6 +1,7 @@
 #include "ResourceManager.h"
 #include "../Renderer/ShaderProgram.h"
 #include "../Renderer/Texture2D.h"
+#include "../Renderer/Sprite.h"
 
 #include <sstream>
 #include <fstream>
@@ -54,7 +55,7 @@ std::shared_ptr <Renderer::ShaderProgram> ResourceManager::loadShaders(const std
     std::shared_ptr <Renderer::ShaderProgram>& newShaderProgram = m_shaderPrograms.emplace(shaderProgramName, std::make_shared<Renderer::ShaderProgram>(vertexShaderSource.c_str(), fragmentShaderSource.c_str())).first->second;
     /* Check shader program compilation for success */
     if (!newShaderProgram->isCompiled()) {
-        std::cerr << "Can not load Shader Program:\n"
+        std::cerr << "Can not load shader program:\n"
             << "Vertex: " << vertexShaderPath << "\n"
             << "Fragment: " << fragmentShaderPath << std::endl;
             return nullptr;
@@ -107,6 +108,47 @@ std::shared_ptr <Renderer::Texture2D> ResourceManager::getTexture(const std::str
     /* Check the existence of the texture */
     if (it == m_textures.end()) {
         std::cerr << "Can not find the texture: " << textureName << std::endl;
+        return nullptr;
+    }
+    return it->second;
+}
+
+/* Load a sprite */
+std::shared_ptr <Renderer::Sprite> ResourceManager::loadSprite(const std::string& spriteName, 
+                                                               const std::string& textureName, 
+                                                               const std::string& shaderProgramName, 
+                                                               const unsigned int spriteWidth, 
+                                                               const unsigned int spriteHeight) {
+    /* Get texture by its name */
+    auto pTexture = getTexture(textureName);
+    /* Check getting of the texture for success */
+    if (!pTexture) {
+        std::cerr << "Can not find the texture: " << textureName << " for the sprite: " << spriteName << std::endl;
+    }
+
+    /* Get shader program by its name */
+    auto pShaderProgram = getShaderProgram(shaderProgramName);
+    /* Check getting of the shader program for success */
+    if (!pShaderProgram) {
+        std::cerr << "Can not fint the shader program: " << shaderProgramName << " for the sprite: " << spriteName << std::endl;
+    }
+
+    /* Create a sprite and emplace it in the map */
+    std::shared_ptr <Renderer::Sprite> newSprite = m_sprites.emplace(spriteName, 
+                                                                     std::make_shared<Renderer::Sprite>(pTexture, 
+                                                                     pShaderProgram,
+                                                                     glm::vec2(0.f, 0.f),
+                                                                     glm::vec2(spriteWidth, spriteHeight))).first->second;
+
+    return newSprite;                                                                                                                             
+}
+
+/* Get sprite by its name */
+std::shared_ptr <Renderer::Sprite> ResourceManager::getSprite(const std::string& spriteName) const {
+    SpritesMap::const_iterator it = m_sprites.find(spriteName);
+    /* Check the existence of the sprite */
+    if (it == m_sprites.end()) {
+        std::cerr << "Can not find the sprite: " << spriteName << std::endl;
         return nullptr;
     }
     return it->second;

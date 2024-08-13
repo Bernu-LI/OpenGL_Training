@@ -10,14 +10,14 @@ namespace Renderer {
         /* Vertex shader initialization */
         GLuint vertexShaderID;
         if (!initializeShader(vertexShaderSource.c_str(), GL_VERTEX_SHADER, vertexShaderID)) {
-            std::cerr << "Vertex Shader compile time error" << std::endl;
+            std::cerr << "Vertex shader compile time error" << std::endl;
             return;
         }
         
         /* Fragment shader initialization */
         GLuint fragmentShaderID;
         if (!initializeShader(fragmentShaderSource.c_str(), GL_FRAGMENT_SHADER, fragmentShaderID)) {
-            std::cerr << "Fragment Shader compile time error" << std::endl;
+            std::cerr << "Fragment shader compile time error" << std::endl;
             glDeleteShader(vertexShaderID);     // Delete vertex shader in case of fragment shader compilation error
             return;
         }
