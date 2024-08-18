@@ -8,7 +8,8 @@
 
 namespace Renderer {
     /* Create a sprite */
-    Sprite::Sprite(const std::shared_ptr <Texture2D> pTexture, 
+    Sprite::Sprite(const std::shared_ptr <Texture2D> pTexture,
+                   const std::string initialSubTextureName, 
                    const std::shared_ptr <ShaderProgram> pShaderProgram, 
                    const glm::vec2& position, 
                    const glm::vec2& size, 
@@ -33,15 +34,18 @@ namespace Renderer {
             0.f, 0.f
         };
 
-        /* Array of texture-to-vertex coordinate mapping */
-        const GLfloat textureCoords[] {
-            0.f, 0.f,
-            0.f, 1.f,
-            1.f, 1.f,
+        /* Get the subtexture by its name */
+        auto subTexture = pTexture->getSubTexture(std::move(initialSubTextureName));
 
-            1.f, 1.f, 
-            1.f, 0.f,
-            0.f, 0.f
+        /* Array of subtexture-to-vertex coordinate mapping */
+        const GLfloat textureCoords[] {
+            subTexture.leftBottomUV.x, subTexture.leftBottomUV.y,
+            subTexture.leftBottomUV.x, subTexture.rightTopUV.y,
+            subTexture.rightTopUV.x, subTexture.rightTopUV.y,
+
+            subTexture.rightTopUV.x, subTexture.rightTopUV.y, 
+            subTexture.rightTopUV.x, subTexture.leftBottomUV.y,
+            subTexture.leftBottomUV.x, subTexture.leftBottomUV.y
         };
         
         /* Create a Vertex Array Object for vertex attriute state */

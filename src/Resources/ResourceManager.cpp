@@ -94,7 +94,7 @@ std::shared_ptr <Renderer::Texture2D> ResourceManager::loadTexture(const std::st
     }
     
     /* Create a texture and emplace it in the map */
-    std::shared_ptr <Renderer::Texture2D> newTexture = m_textures.emplace(textureName, std::make_shared<Renderer::Texture2D>(width, height, pixels, channels, GL_LINEAR, GL_CLAMP_TO_EDGE)).first->second;
+    std::shared_ptr <Renderer::Texture2D> newTexture = m_textures.emplace(textureName, std::make_shared<Renderer::Texture2D>(width, height, pixels, channels, GL_NEAREST, GL_CLAMP_TO_EDGE)).first->second;
 
     /* Free the memory allocated for storing the image */
     stbi_image_free(pixels);
@@ -118,7 +118,8 @@ std::shared_ptr <Renderer::Sprite> ResourceManager::loadSprite(const std::string
                                                                const std::string& textureName, 
                                                                const std::string& shaderProgramName, 
                                                                const unsigned int spriteWidth, 
-                                                               const unsigned int spriteHeight) {
+                                                               const unsigned int spriteHeight,
+                                                               const std::string& initialSubTextureName) {
     /* Get texture by its name */
     auto pTexture = getTexture(textureName);
     /* Check getting of the texture for success */
@@ -135,7 +136,8 @@ std::shared_ptr <Renderer::Sprite> ResourceManager::loadSprite(const std::string
 
     /* Create a sprite and emplace it in the map */
     std::shared_ptr <Renderer::Sprite> newSprite = m_sprites.emplace(spriteName, 
-                                                                     std::make_shared<Renderer::Sprite>(pTexture, 
+                                                                     std::make_shared<Renderer::Sprite>(pTexture,
+                                                                     initialSubTextureName, 
                                                                      pShaderProgram,
                                                                      glm::vec2(0.f, 0.f),
                                                                      glm::vec2(spriteWidth, spriteHeight))).first->second;
@@ -152,4 +154,35 @@ std::shared_ptr <Renderer::Sprite> ResourceManager::getSprite(const std::string&
         return nullptr;
     }
     return it->second;
+}
+
+/* Load a texture atlas */
+std::shared_ptr <Renderer::Texture2D> ResourceManager::loadTextureAtlas(const std::string textureAtlasName,
+                                                                        const std::string texturePath,
+                                                                        const std::vector <std::string> subTextureNames,
+                                                                        const unsigned int subTextureWidth, 
+                                                                        const unsigned int subTextureHeight) {
+    /* Load a texture */
+    auto pTexture = loadTexture(std::move(textureAtlasName), std::move(texturePath));
+    /* If the texture is successfully loaded, split it into subtextures(tiles) */
+    if (pTexture) {
+        const unsigned int textureWidth = pTexture->width();
+        const unsigned int textureHeight = pTexture->height();
+        unsigned int currentTextureOffsetX = 0;
+        unsigned int currentTextureOffsetY = textureHeight;
+        for (const auto& currentSubTextureName : subTextureNames) {
+            glm::vec2 leftBottomUV(static_cast<float>(currentTextureOffsetX) / textureWidth, static_cast<float>(currentTextureOffsetY - subTextureHeight) / textureHeight);
+            glm::vec2 rightTopUV(static_cast<float>(currentTextureOffsetX + subTextureWidth) / textureWidth, static_cast<float>(currentTextureOffsetY) / textureHeight);
+
+            pTexture->addSubTexture(std::move(currentSubTextureName), leftBottomUV, rightTopUV);
+
+            currentTextureOffsetX += subTextureWidth;
+            if (currentTextureOffsetX >= textureWidth) {
+                currentTextureOffsetX = 0;
+                currentTextureOffsetY -= subTextureHeight;
+            }
+        }
+    }
+
+    return pTexture;
 }

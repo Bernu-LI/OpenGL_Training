@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <vector>
 
 namespace Renderer {
     class ShaderProgram;
@@ -35,12 +36,20 @@ public:
 
     /* Load a sprite */
     std::shared_ptr <Renderer::Sprite> loadSprite(const std::string& spriteName, 
-                                                  const std::string& textureName, 
+                                                  const std::string& textureName,
                                                   const std::string& shaderProgramName, 
                                                   const unsigned int spriteWidth, 
-                                                  const unsigned int spriteHeight);
+                                                  const unsigned int spriteHeight,
+                                                  const std::string& initialSubTextureName = "default");
     /* Get sprite by its name */
     std::shared_ptr <Renderer::Sprite> getSprite(const std::string& spriteName) const;
+
+    /* Load a texture atlas */
+    std::shared_ptr <Renderer::Texture2D> loadTextureAtlas(const std::string textureAtlasName,
+                                                           const std::string texturePath,
+                                                           const std::vector <std::string> subTextureNames,
+                                                           const unsigned int subTextureWidth, 
+                                                           const unsigned int subTextureHeight);
     
 private:
     /* Get a string from the file */

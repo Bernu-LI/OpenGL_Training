@@ -75,5 +75,22 @@ namespace Renderer {
     void Texture2D::bind() const {
         glBindTexture(GL_TEXTURE_2D, m_ID);
     }
+
+    /* Add a subtexture(tile) */
+    void Texture2D::addSubTexture(std::string subTextureName, const glm::vec2& leftBottomUV, glm::vec2& rigthTopUV) {
+        /* Create a subtexture object and emplace it in the map */
+        m_subTextures.emplace(std::move(subTextureName), SubTexture2D(leftBottomUV, rigthTopUV));
+    }
+
+    /* Get subtexture by its name */
+    const Texture2D::SubTexture2D& Texture2D::getSubTexture(const std::string& subTextureName) const {
+        auto it = m_subTextures.find(subTextureName);
+        /* Check the existence of the subtexture. If the subtexture does not exist, then take the entire texture as subtexture */
+        if (it == m_subTextures.end()) {
+            const static SubTexture2D defaultSubTexture;
+            return defaultSubTexture;
+        }
+        return it->second;
+    }
     
 }

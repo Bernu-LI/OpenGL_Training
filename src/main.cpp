@@ -110,8 +110,12 @@ int main(int argc, char** argv)
         /* Load a texture */
         auto pDefaultTexture = resourceManager.loadTexture("DefaultTexture", "res/textures/map_16x16.png");
 
+        /* Load a texture atlas */
+        std::vector <std::string> subTextureNames = { "brick", "topBrick", "bottomBrick", "leftBrick", "rightBrick", "topLeftBrick", "topRightBrick", "bottomLeftBrick", "bottomRightBrick", "concrete" };
+        auto pTextureAtlas = resourceManager.loadTextureAtlas("DefaultTextureAtlas", "res/textures/map_16x16.png", std::move(subTextureNames), 16, 16);
+
         /* Load a sprite */
-        auto pSprite = resourceManager.loadSprite("Sprite", "DefaultTexture", "SpriteShaderProgram", 50, 100);
+        auto pSprite = resourceManager.loadSprite("Sprite", "DefaultTextureAtlas", "SpriteShaderProgram", 100, 100, "brick");
 
         /* Set sprite position */
         pSprite->setPosition(glm::vec2(300, 100));
